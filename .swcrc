@@ -1,0 +1,14 @@
+{
+    "jsc": {
+      "parser": {
+        "syntax": "typescript",
+        "decorators": true
+      },
+      "transform": {
+        "legacyDecorator": true,
+        "decoratorMetadata": true
+      },
+      "target": "es2018"
+    },
+    "sourceMaps": "inline"
+}
