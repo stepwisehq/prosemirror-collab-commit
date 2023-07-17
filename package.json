@@ -1,6 +1,6 @@
 {
   "name": "@stepwisehq/prosemirror-collab-commit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Commit-based collab plugin for ProseMirror",
   "homepage": "https://github.com/stepwisehq/prosemirror-collab-commit",
   "private": false,
@@ -23,7 +23,9 @@
     "test": "node --inspect --experimental-vm-modules node_modules/jest/bin/jest.js",
     "build": "tsc"
   },
-  "keywords": ["prosemirror"],
+  "keywords": [
+    "prosemirror"
+  ],
   "author": "ProTip",
   "license": "MIT",
   "dependencies": {
