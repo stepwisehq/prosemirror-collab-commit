@@ -2,6 +2,7 @@
   "name": "@stepwisehq/prosemirror-collab-commit",
   "version": "1.0.0",
   "description": "Commit-based collab plugin for ProseMirror",
+  "homepage": "https://github.com/stepwisehq/prosemirror-collab-commit",
   "private": false,
   "type": "module",
   "main": "./dist/index.js",

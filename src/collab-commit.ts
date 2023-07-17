@@ -127,7 +127,6 @@ export class CollabState {
     return this.commit = new Commit(
       this.version,
       randomRef(),
-      // neutralizeSteps(this.unconfirmed.slice(0, size).map(r => r.step))
       this.unconfirmed.slice(0, size).map(r => r.step)
     )
   }
