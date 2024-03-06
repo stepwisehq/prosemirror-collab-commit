@@ -2,7 +2,7 @@ prosemirror-collab-commit
 =========================
 
 > [!NOTE]
-> This project is *not* dead. ProseMirror's core packages change extremely infrequently including bug fixes.
+> This project is *not* dead. ProseMirror's core packages change extremely infrequently; including bug fixes.
 
 Commit-based collaborative editing plugin for ProseMirror.
 
