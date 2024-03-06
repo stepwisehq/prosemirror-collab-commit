@@ -1,6 +1,9 @@
 prosemirror-collab-commit
 =========================
 
+> [!NOTE]
+> This project is *not* dead. ProseMirror's core packages change extremely infrequently including bug fixes.
+
 Commit-based collaborative editing plugin for ProseMirror.
 
 This solves two key problems with `prosemirror-collab` through server-side
