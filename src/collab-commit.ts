@@ -119,7 +119,7 @@ export class CollabState {
    * Assign a unique ref and ensure this commit is always returned
    * from the same document state.
   */
-  getCommit(size: number = 20) {
+  getCommit(maxSteps: number = 20) {
     if (this.commit) return this.commit
 
     if (this.unconfirmed.length == 0) return null
@@ -127,7 +127,7 @@ export class CollabState {
     return this.commit = new Commit(
       this.version,
       randomRef(),
-      this.unconfirmed.slice(0, size).map(r => r.step)
+      this.unconfirmed.slice(0, maxSteps).map(r => r.step)
     )
   }
 }
@@ -248,9 +248,9 @@ export function chainCommitTransaction(
   return tr.setMeta("rebased", nUnconfirmed).setMeta("addToHistory", false).setMeta(collabKey, newCollabState)
 }
 
-export function sendableCommit(state: EditorState): Commit | null {
+export function sendableCommit(state: EditorState, maxSteps = 20): Commit | null {
   let collabState = collabKey.getState(state) as CollabState
-  return collabState.getCommit()
+  return collabState.getCommit(maxSteps)
 }
 
 /// Get the version up to which the collab plugin has synced with the
