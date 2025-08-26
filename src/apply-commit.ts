@@ -2,6 +2,40 @@ import { Schema, Node, SchemaSpec } from "prosemirror-model"
 import { Mapping, Step, Transform } from "prosemirror-transform"
 import { Commit, CommitJSON, NodeJSON } from "./collab-commit.js"
 
+export function applyCommit(version: number, schema: Schema, doc: Node, commits: Commit[], commit: Commit) {
+  const newSteps = commits.reduce((steps, c) => steps = steps.concat(c.steps), [] as Step[])
+  const newStepMap = new Mapping(newSteps.map(s => s.getMap()))
+
+  const commitSteps = commit.steps
+  const mapping = new Mapping(commitSteps.map(s => s.getMap())).invert()
+  mapping.appendMapping(newStepMap)
+
+  const tr = new Transform(doc)
+
+  for (let i = 0, mapFrom = commitSteps.length; i < commitSteps.length; i++) {
+    const step = commitSteps[i]
+    const sliced = mapping.slice(mapFrom)
+    const mapped = step!.map(sliced)!
+    mapFrom--
+    if (mapped && !tr.maybeStep(mapped).failed) {
+      mapping.appendMapping(new Mapping(tr.mapping.maps.slice(tr.steps.length - 1)))
+      // Set mirror so positions can be recovered properly. Without this a Replace.To
+      // that landed in a position created by a predecessor would not get mapped back to the correct
+      // position.
+      // @ts-ignore
+      mapping.setMirror(mapFrom, mapping.maps.length - 1)
+    }
+  }
+
+  version++
+  const appliedCommit = new Commit(version, commit.ref, tr.steps)
+
+  return {
+    doc: tr.doc,
+    commit: appliedCommit
+  }
+}
+
 /**
  * Maps a JSON commit forward through commits newer than commit version. Attempts to apply steps and drops
  * any that fail. This version takes all plain JSON arguments.
@@ -16,36 +50,13 @@ export function applyCommitJSON(version: number, schema: Schema, docJSON: NodeJS
     const doc = Node.fromJSON(schema, docJSON)
 
     const commits = commitsJSON.map(c => Commit.FromJSON(schema, c))
-    const newSteps = commits.reduce((steps, c) => steps = steps.concat(c.steps), [] as Step[])
-    const newStepMap = new Mapping(newSteps.map(s => s.getMap()))
 
     const commit = Commit.FromJSON(schema, commitJSON)
-    const commitSteps = commit.steps
-    const mapping = new Mapping(commitSteps.map(s => s.getMap())).invert()
-    mapping.appendMapping(newStepMap)
 
-    const tr = new Transform(doc)
-
-    for (let i = 0, mapFrom = commitSteps.length; i < commitSteps.length; i++) {
-      const step = commitSteps[i]
-      const sliced = mapping.slice(mapFrom)
-      const mapped = step!.map(sliced)!
-      mapFrom--
-      if (mapped && !tr.maybeStep(mapped).failed) {
-        mapping.appendMapping(new Mapping(tr.mapping.maps.slice(tr.steps.length - 1)))
-        // Set mirror so positions can be recovered properly. Without this a Replace.To
-        // that landed in a position created by a predecessor would not get mapped back to the correct
-        // position.
-        // @ts-ignore
-        mapping.setMirror(mapFrom, mapping.maps.length - 1)
-      }
-    }
-
-    version++
-    const appliedCommit = new Commit(version, commit.ref, tr.steps)
+    const {doc: updatedDoc, commit: appliedCommit} = applyCommit(version, schema, doc, commits, commit)
 
     return {
-      docJSON: tr.doc.toJSON() as NodeJSON,
+      docJSON: updatedDoc.toJSON() as NodeJSON,
       commitJSON: appliedCommit.toJSON()
     }
 }
