@@ -3,37 +3,37 @@ import { Mapping, Step, Transform } from "prosemirror-transform"
 import { Commit, CommitJSON, NodeJSON } from "./collab-commit.js"
 
 export function applyCommit(version: number, schema: Schema, doc: Node, commits: Commit[], commit: Commit) {
-  const newSteps = commits.reduce((steps, c) => steps = steps.concat(c.steps), [] as Step[])
-  const newStepMap = new Mapping(newSteps.map(s => s.getMap()))
+    const newSteps = commits.reduce((steps, c) => steps = steps.concat(c.steps), [] as Step[])
+    const newStepMap = new Mapping(newSteps.map(s => s.getMap()))
 
-  const commitSteps = commit.steps
-  const mapping = new Mapping(commitSteps.map(s => s.getMap())).invert()
-  mapping.appendMapping(newStepMap)
+    const commitSteps = commit.steps
+    const mapping = new Mapping(commitSteps.map(s => s.getMap())).invert()
+    mapping.appendMapping(newStepMap)
 
-  const tr = new Transform(doc)
+    const tr = new Transform(doc)
 
-  for (let i = 0, mapFrom = commitSteps.length; i < commitSteps.length; i++) {
-    const step = commitSteps[i]
-    const sliced = mapping.slice(mapFrom)
-    const mapped = step!.map(sliced)!
-    mapFrom--
-    if (mapped && !tr.maybeStep(mapped).failed) {
-      mapping.appendMapping(new Mapping(tr.mapping.maps.slice(tr.steps.length - 1)))
-      // Set mirror so positions can be recovered properly. Without this a Replace.To
-      // that landed in a position created by a predecessor would not get mapped back to the correct
-      // position.
-      // @ts-ignore
-      mapping.setMirror(mapFrom, mapping.maps.length - 1)
+    for (let i = 0, mapFrom = commitSteps.length; i < commitSteps.length; i++) {
+        const step = commitSteps[i]
+        const sliced = mapping.slice(mapFrom)
+        const mapped = step!.map(sliced)!
+        mapFrom--
+        if (mapped && !tr.maybeStep(mapped).failed) {
+            mapping.appendMapping(new Mapping(tr.mapping.maps.slice(tr.steps.length - 1)))
+            // Set mirror so positions can be recovered properly. Without this a Replace.To
+            // that landed in a position created by a predecessor would not get mapped back to the correct
+            // position.
+            // @ts-ignore
+            mapping.setMirror(mapFrom, mapping.maps.length - 1)
+        }
     }
-  }
 
-  version++
-  const appliedCommit = new Commit(version, commit.ref, tr.steps)
+    version++
+    const appliedCommit = new Commit(version, commit.ref, tr.steps)
 
-  return {
-    doc: tr.doc,
-    commit: appliedCommit
-  }
+    return {
+        doc: tr.doc,
+        commit: appliedCommit
+    }
 }
 
 /**
